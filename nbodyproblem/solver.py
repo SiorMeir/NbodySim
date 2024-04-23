@@ -38,14 +38,19 @@ def update_body_state(body: CelestialBody,force : Force, timestep=0.1) -> Celest
     acceleration = Acceleration.from_polar(force.size / body.mass , force.azimuth)
     body.A += acceleration
     body.V += body.A * timestep
-    body.X = body.X + body.V * timestep + body.A * 0.5 * timestep**2
+    body.X = body.X + body.V * timestep + body.A * 0.5 * timestep ** 2
     return body
 
 def main(bodies : list[CelestialBody], endtime : int, timestep : int) -> None:
     timesteps = range(0,endtime,timestep)
     print(list(timesteps))
-    forces = calc_forces(bodies)
     print(forces)
+    elapsed_time = 0.0
+    while elapsed_time < endtime:
+        forces = calc_forces(bodies)
+        for body in bodies:
+            update_body_state(body,forces.get(body.name),timestep)
+        # for each body, assign forces & update state
     """
     Stages:
     1. get all bodies
