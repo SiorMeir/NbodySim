@@ -34,6 +34,13 @@ def calc_eq_force(forces : list[Force]):
 
     return cum_force
 
+def update_body_state(body: CelestialBody,force : Force, timestep=0.1) -> CelestialBody:
+    acceleration = Acceleration.from_polar(force.size / body.mass , force.azimuth)
+    body.A += acceleration
+    body.V += body.A * timestep
+    body.X = body.X + body.V * timestep + body.A * 0.5 * timestep**2
+    return body
+
 def main(bodies : list[CelestialBody], endtime : int, timestep : int) -> None:
     timesteps = range(0,endtime,timestep)
     print(list(timesteps))

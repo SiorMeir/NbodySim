@@ -40,6 +40,11 @@ class AbstractVector():
             raise TypeError("Unsupported operand type for +: AbstractVector and {}".format(type(other)))
         return AbstractVector(self.x + other.x, self.y + other.y)
     
+    def __mul__(self, other):
+        if not isinstance(other, float):
+            raise TypeError("Multiplication factor must be a scalar")
+        return self.size * other
+    
     def __eq__(self, other):
         if not isinstance(other, AbstractVector):
             return False
@@ -55,7 +60,7 @@ class Acceleration(AbstractVector):
     pass
 
 class Force(AbstractVector):
-    ...
+    pass
 
 @dataclass
 class CelestialBody():
