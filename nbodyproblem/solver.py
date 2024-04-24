@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from scipy.constants import gravitational_constant as G
 from nbodyproblem.models.bodies import Acceleration, CelestialBody, Force, Point, Velocity
 
@@ -41,6 +42,9 @@ def update_body_state(body: CelestialBody,force : Force, timestep=0.1) -> Celest
     body.X = body.X + body.V * timestep + body.A * 0.5 * timestep ** 2
     return body
 
+def add_to_timeseries(timeseries :pd.DataFrame , body: CelestialBody, time: float) -> None:
+    pass
+
 def main(bodies : list[CelestialBody], endtime : int, timestep : int) -> None:
     timesteps = range(0,endtime,timestep)
     print(list(timesteps))
@@ -50,6 +54,8 @@ def main(bodies : list[CelestialBody], endtime : int, timestep : int) -> None:
         forces = calc_forces(bodies)
         for body in bodies:
             update_body_state(body,forces.get(body.name),timestep)
+            add_to_timeseries(body,elapsed_time)
+        elapsed_time += timestep
         # for each body, assign forces & update state
     """
     Stages:
