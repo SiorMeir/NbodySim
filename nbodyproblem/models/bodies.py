@@ -41,9 +41,9 @@ class AbstractVector():
         return AbstractVector(self.x + other.x, self.y + other.y)
     
     def __mul__(self, other):
-        if not isinstance(other, float):
+        if not isinstance(other, (float,int)):
             raise TypeError("Multiplication factor must be a scalar")
-        return self.size * other
+        return AbstractVector.from_polar(self.size * other,self.azimuth)
     
     def __eq__(self, other):
         if not isinstance(other, AbstractVector):
