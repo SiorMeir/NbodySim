@@ -59,16 +59,6 @@ def update_body_state(body: CelestialBody, force: Force, timestep=0.1) -> Celest
 def add_to_timeseries(
     timeseries: pd.DataFrame, body: CelestialBody, time: float
 ) -> pd.DataFrame:
-    # new_row = DataFrame({
-    #         "time": time,
-    #         "body": body.name,
-    #         "x": body.X.x,
-    #         "y": body.X.y,
-    #         "vx": body.V.x,
-    #         "vy": body.V.y,
-    #         "ax": body.A.x,
-    #         "ay": body.A.y,
-    #     },index=[0])
     new_row = pd.DataFrame(
         data=[[
             time,
@@ -83,7 +73,6 @@ def add_to_timeseries(
         columns=columns,
     )
     timeseries = pd.concat(objs=[timeseries,new_row],ignore_index=True)
-    # timeseries.loc[len(timeseries)] = new_row
     return timeseries
 
 
