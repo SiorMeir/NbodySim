@@ -1,5 +1,5 @@
 import numpy as np
-from pandas import DataFrame
+import pandas as pd
 from scipy.constants import gravitational_constant as G
 from nbodyproblem.models.bodies import (
     Acceleration,
@@ -8,7 +8,7 @@ from nbodyproblem.models.bodies import (
     Point,
     Velocity,
 )
-from nbodyproblem.models.timeseries import sim_dataseries
+from nbodyproblem.models.timeseries import sim_dataseries, columns
 
 
 def calc_gravity(m1, m2, r):
@@ -57,19 +57,33 @@ def update_body_state(body: CelestialBody, force: Force, timestep=0.1) -> Celest
 
 
 def add_to_timeseries(
-    timeseries: DataFrame, body: CelestialBody, time: float
-) -> DataFrame:
-    new_row = {
-            "time": time,
-            "name": body.name,
-            "x": body.X.x,
-            "y": body.X.y,
-            "vx": body.V.x,
-            "vy": body.V.y,
-            "ax": body.A.x,
-            "ay": body.A.y,
-        }
-    timeseries.loc[len(timeseries)] = new_row
+    timeseries: pd.DataFrame, body: CelestialBody, time: float
+) -> pd.DataFrame:
+    # new_row = DataFrame({
+    #         "time": time,
+    #         "body": body.name,
+    #         "x": body.X.x,
+    #         "y": body.X.y,
+    #         "vx": body.V.x,
+    #         "vy": body.V.y,
+    #         "ax": body.A.x,
+    #         "ay": body.A.y,
+    #     },index=[0])
+    new_row = pd.DataFrame(
+        data=[[
+            time,
+            body.name,
+            body.X.x,
+            body.X.y,
+            body.V.x,
+            body.V.y,
+            body.A.x,
+            body.A.y,
+        ]],
+        columns=columns,
+    )
+    timeseries = pd.concat(objs=[timeseries,new_row],ignore_index=True)
+    # timeseries.loc[len(timeseries)] = new_row
     return timeseries
 
 
@@ -81,8 +95,8 @@ def main(bodies: list[CelestialBody], endtime: int, timestep: int) -> None:
     while elapsed_time < endtime:
         forces = calc_forces(bodies)
         for body in bodies:
-            update_body_state(body, forces.get(body.name), timestep)
-            dataseries = add_to_timeseries(dataseries, body, elapsed_time)
+            temp_body = update_body_state(body, forces.get(body.name), timestep)
+            dataseries = add_to_timeseries(dataseries, temp_body, elapsed_time)
         elapsed_time += timestep
     print(dataseries)
     """
