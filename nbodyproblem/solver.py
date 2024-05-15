@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 from scipy.constants import gravitational_constant as G
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 from nbodyproblem.models.bodies import (
     Acceleration,
     CelestialBody,
@@ -76,7 +78,7 @@ def add_to_timeseries(
     return timeseries
 
 
-def main(bodies: list[CelestialBody], endtime: int, timestep: int) -> None:
+def main(bodies: list[CelestialBody], endtime: int, timestep: int) -> pd.DataFrame:
     timesteps = range(0, endtime, timestep)
     dataseries = sim_dataseries.copy()
     print(list(timesteps))
@@ -88,6 +90,7 @@ def main(bodies: list[CelestialBody], endtime: int, timestep: int) -> None:
             dataseries = add_to_timeseries(dataseries, temp_body, elapsed_time)
         elapsed_time += timestep
     print(dataseries)
+    return dataseries
     """
     Stages:
     1. get all bodies
@@ -100,6 +103,14 @@ def main(bodies: list[CelestialBody], endtime: int, timestep: int) -> None:
     8. repeat for next time step
     """
 
+def update_plot(frame):
+    plt.cla()  # Clear the current axes
+    data = df[df['time'] == frame]  # Filter data for the current time
+    plt.scatter(data['x'], data['y'])  # Plot x and y coordinates for the body
+    plt.xlim(0, max(df['x']))  # Set x-axis limits
+    plt.ylim(0, max(df['y']))  # Set y-axis limits
+    plt.title(f'Time: {frame}')  # Set title with current time
+
 
 if __name__ == "__main__":
     starting_point_a = Point(0, 0)
@@ -108,4 +119,8 @@ if __name__ == "__main__":
     zero_acc = Acceleration(0, 0)
     body_a = CelestialBody("A", 10, 10, starting_point_a, zero_velocity, zero_acc)
     body_b = CelestialBody("B", 10, 10, starting_point_b, zero_velocity, zero_acc)
-    main([body_a, body_b], 10, 1)
+    df = main([body_a, body_b], 10, 1)
+
+    fig = plt.figure()
+    ani = animation.FuncAnimation(fig, update_plot, frames=df['time'].unique(), blit=False)
+    plt.show()
