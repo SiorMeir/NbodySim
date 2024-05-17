@@ -87,7 +87,7 @@ def main(bodies: list[CelestialBody], endtime: int, timestep: int) -> None:
             temp_body = update_body_state(body, forces.get(body.name), timestep)
             dataseries = add_to_timeseries(dataseries, temp_body, elapsed_time)
         elapsed_time += timestep
-    print(dataseries)
+    # print(dataseries)
     """
     Stages:
     1. get all bodies
@@ -101,11 +101,35 @@ def main(bodies: list[CelestialBody], endtime: int, timestep: int) -> None:
     """
 
 
+# if __name__ == "__main__":
+#     starting_point_a = Point(0, 0)
+#     starting_point_b = Point(10, 0)
+#     zero_velocity = Velocity(0, 0)
+#     zero_acc = Acceleration(0, 0)
+#     body_a = CelestialBody("A", 10, 10, starting_point_a, zero_velocity, zero_acc)
+#     body_b = CelestialBody("B", 10, 10, starting_point_b, zero_velocity, zero_acc)
+#     main([body_a, body_b], 10, 1)
+
 if __name__ == "__main__":
-    starting_point_a = Point(0, 0)
-    starting_point_b = Point(10, 0)
-    zero_velocity = Velocity(0, 0)
+    starting_point_earth = Point(0, 0)  # Earth at origin
+    starting_point_moon = Point(384400, 0)  # Moon 384,400 km from Earth
+    starting_point_sun = Point(-149600000, 0)  # Sun 149,600,000 km from Earth
+
+    velocity_earth = Velocity(0, 29.78)  # Earth's orbital velocity around Sun ~29.78 km/s
+    velocity_moon = Velocity(0, 1.022)  # Moon's orbital velocity around Earth ~1.022 km/s
+    velocity_sun = Velocity(0, 0)  # Assuming the Sun is stationary in this frame
+
+    mass_earth = 5.972e24  # Mass of Earth in kg
+    mass_moon = 7.342e22  # Mass of Moon in kg
+    mass_sun = 1.989e30  # Mass of Sun in kg
+
     zero_acc = Acceleration(0, 0)
-    body_a = CelestialBody("A", 10, 10, starting_point_a, zero_velocity, zero_acc)
-    body_b = CelestialBody("B", 10, 10, starting_point_b, zero_velocity, zero_acc)
-    main([body_a, body_b], 10, 1)
+
+    body_earth = CelestialBody("Earth", mass_earth, 6371, starting_point_earth, velocity_earth, zero_acc)
+    body_moon = CelestialBody("Moon", mass_moon, 1737, starting_point_moon, velocity_moon, zero_acc)
+    body_sun = CelestialBody("Sun", mass_sun, 696340, starting_point_sun, velocity_sun, zero_acc)
+
+    end_time = 31536000  # Simulate for one year (in seconds)
+    time_step = 3600  # Time step of one hour (in seconds)
+
+    main([body_earth, body_moon, body_sun], end_time, time_step)
