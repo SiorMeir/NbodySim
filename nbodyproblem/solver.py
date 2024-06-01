@@ -1,8 +1,8 @@
+from matplotlib.animation import FuncAnimation
 import numpy as np
 import pandas as pd
 from scipy.constants import gravitational_constant as G
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 from nbodyproblem.models.bodies import (
     Acceleration,
     CelestialBody,
@@ -81,7 +81,6 @@ def add_to_timeseries(
 def main(bodies: list[CelestialBody], endtime: int, timestep: int) -> pd.DataFrame:
     timesteps = range(0, endtime, timestep)
     dataseries = sim_dataseries.copy()
-    print(list(timesteps))
     elapsed_time = 0.0
     while elapsed_time < endtime:
         forces = calc_forces(bodies)
@@ -89,57 +88,75 @@ def main(bodies: list[CelestialBody], endtime: int, timestep: int) -> pd.DataFra
             temp_body = update_body_state(body, forces.get(body.name), timestep)
             dataseries = add_to_timeseries(dataseries, temp_body, elapsed_time)
         elapsed_time += timestep
-    # print(dataseries)
-    """
-    Stages:
-    1. get all bodies
-    2. get all Forces between bodies == N-1 forces
-    3. assign forces to bodies
-    4. calc cumulative force for each body
-    5. calc acceleration for each body
-    6. calc velocity
-    7. calc postion
-    8. repeat for next time step
-    """
+    return dataseries
 
-def update_plot(frame):
+def update_plot(frame, df):
     plt.cla()  # Clear the current axes
     data = df[df['time'] == frame]  # Filter data for the current time
-    plt.scatter(data['x'], data['y'])  # Plot x and y coordinates for the body
-    plt.xlim(0, max(df['x']))  # Set x-axis limits
-    plt.ylim(0, max(df['y']))  # Set y-axis limits
+    for _, row in data.iterrows():
+        plt.scatter(row['x'], row['y'], label=row['name'])  # Plot x and y coordinates for the body
+    plt.xlim(df['x'].min(), df['x'].max())  # Set x-axis limits
+    plt.ylim(df['y'].min(), df['y'].max())  # Set y-axis limits
     plt.title(f'Time: {frame}')  # Set title with current time
+    plt.legend(loc='upper right')  # Add legend to differentiate bodies
 
-
-# if __name__ == "__main__":
-#     starting_point_a = Point(0, 0)
-#     starting_point_b = Point(10, 0)
-#     zero_velocity = Velocity(0, 0)
-#     zero_acc = Acceleration(0, 0)
-#     body_a = CelestialBody("A", 10, 10, starting_point_a, zero_velocity, zero_acc)
-#     body_b = CelestialBody("B", 10, 10, starting_point_b, zero_velocity, zero_acc)
-#     main([body_a, body_b], 10, 1)
 
 if __name__ == "__main__":
-    starting_point_earth = Point(0, 0)  # Earth at origin
-    starting_point_moon = Point(384400, 0)  # Moon 384,400 km from Earth
-    starting_point_sun = Point(-149600000, 0)  # Sun 149,600,000 km from Earth
+    starting_point_earth = Point(149_600_000, 0)  # Earth on orbit around the sun
+    # starting_point_moon = Point(384400, 0)  # Moon 384,400 km from Earth
+    starting_point_sun = Point(0, 0)  # Sun at origin
 
-    velocity_earth = Velocity(0, 29.78)  # Earth's orbital velocity around Sun ~29.78 km/s
-    velocity_moon = Velocity(0, 1.022)  # Moon's orbital velocity around Earth ~1.022 km/s
+    velocity_earth = Velocity(0, 29780)  # Earth's orbital velocity around Sun ~29.78 km/s
+    # velocity_moon = Velocity(0, 1022)  # Moon's orbital velocity around Earth ~1.022 km/s
     velocity_sun = Velocity(0, 0)  # Assuming the Sun is stationary in this frame
 
     mass_earth = 5.972e24  # Mass of Earth in kg
-    mass_moon = 7.342e22  # Mass of Moon in kg
+    # mass_moon = 7.342e22  # Mass of Moon in kg
     mass_sun = 1.989e30  # Mass of Sun in kg
 
     zero_acc = Acceleration(0, 0)
 
     body_earth = CelestialBody("Earth", mass_earth, 6371, starting_point_earth, velocity_earth, zero_acc)
-    body_moon = CelestialBody("Moon", mass_moon, 1737, starting_point_moon, velocity_moon, zero_acc)
+    # body_moon = CelestialBody("Moon", mass_moon, 1737, starting_point_moon, velocity_moon, zero_acc)
     body_sun = CelestialBody("Sun", mass_sun, 696340, starting_point_sun, velocity_sun, zero_acc)
 
     end_time = 31536000  # Simulate for one year (in seconds)
-    time_step = 3600  # Time step of one hour (in seconds)
+    time_step = 3600 * 24 * 7 # Time step of one hour (in seconds)
 
-    main([body_earth, body_moon, body_sun], end_time, time_step)
+    result = main([body_earth, body_sun], end_time, time_step)
+    # result.to_csv("result.csv", index=False)
+
+    # Get unique bodies
+    bodies = result['body'].unique()
+    # Initialize the figure and axis
+    fig, ax = plt.subplots()
+
+    # Initialize data storage
+    lines = {}
+    for body in bodies:
+        line, = ax.plot([], [], 'o', label=body)
+        lines[body] = line
+
+    ax.set_xlim(min(result['x']), max(result['x']))
+    ax.set_ylim(min(result['y']), max(result['y']))
+    ax.legend()
+
+    # Initialization function
+    def init():
+        for line in lines.values():
+            line.set_data([], [])
+        return lines.values()
+
+    # Update function
+    def update(i):
+        time_point = result['time'].unique()[i]
+        for body in bodies:
+            body_data = result[(result['body'] == body) & (result['time'] == time_point)]
+            lines[body].set_data(body_data['x'], body_data['y'])
+        return lines.values()
+
+    # Create the animation
+    frames = result['time'].unique()
+    ani = FuncAnimation(fig, update, frames=len(frames), init_func=init, blit=True)
+
+    plt.show()
