@@ -121,12 +121,12 @@ def update_plot(frame):
 #     main([body_a, body_b], 10, 1)
 
 if __name__ == "__main__":
-    starting_point_earth = Point(0, 0)  # Earth at origin
-    starting_point_moon = Point(384400, 0)  # Moon 384,400 km from Earth
-    starting_point_sun = Point(-149600000, 0)  # Sun 149,600,000 km from Earth
+    starting_point_earth = Point(149_600_000, 0)  # Earth on orbit around the sun
+    # starting_point_moon = Point(384400, 0)  # Moon 384,400 km from Earth
+    starting_point_sun = Point(0, 0)  # Sun at origin
 
-    velocity_earth = Velocity(0, 29.78)  # Earth's orbital velocity around Sun ~29.78 km/s
-    velocity_moon = Velocity(0, 1.022)  # Moon's orbital velocity around Earth ~1.022 km/s
+    velocity_earth = Velocity(0, 29780)  # Earth's orbital velocity around Sun ~29.78 km/s
+    # velocity_moon = Velocity(0, 1022)  # Moon's orbital velocity around Earth ~1.022 km/s
     velocity_sun = Velocity(0, 0)  # Assuming the Sun is stationary in this frame
 
     mass_earth = 5.972e24  # Mass of Earth in kg
@@ -140,6 +140,42 @@ if __name__ == "__main__":
     body_sun = CelestialBody("Sun", mass_sun, 696340, starting_point_sun, velocity_sun, zero_acc)
 
     end_time = 31536000  # Simulate for one year (in seconds)
-    time_step = 3600  # Time step of one hour (in seconds)
+    time_step = 3600 * 24 * 7 # Time step of one hour (in seconds)
 
-    main([body_earth, body_moon, body_sun], end_time, time_step)
+    result = main([body_earth, body_sun], end_time, time_step)
+    # result.to_csv("result.csv", index=False)
+
+    # Get unique bodies
+    bodies = result['body'].unique()
+    # Initialize the figure and axis
+    fig, ax = plt.subplots()
+
+    # Initialize data storage
+    lines = {}
+    for body in bodies:
+        line, = ax.plot([], [], 'o', label=body)
+        lines[body] = line
+
+    ax.set_xlim(min(result['x']), max(result['x']))
+    ax.set_ylim(min(result['y']), max(result['y']))
+    ax.legend()
+
+    # Initialization function
+    def init():
+        for line in lines.values():
+            line.set_data([], [])
+        return lines.values()
+
+    # Update function
+    def update(i):
+        time_point = result['time'].unique()[i]
+        for body in bodies:
+            body_data = result[(result['body'] == body) & (result['time'] == time_point)]
+            lines[body].set_data(body_data['x'], body_data['y'])
+        return lines.values()
+
+    # Create the animation
+    frames = result['time'].unique()
+    ani = animation.FuncAnimation(fig, update, frames=len(frames), init_func=init, blit=True)
+
+    plt.show()
