@@ -102,11 +102,11 @@ def update_plot(frame, df):
 
 
 if __name__ == "__main__":
-    starting_point_earth = Point(149_600_000, 0)  # Earth on orbit around the sun
+    starting_point_earth = Point(0, 1.496e11)  # Earth on orbit around the sun
     # starting_point_moon = Point(384400, 0)  # Moon 384,400 km from Earth
     starting_point_sun = Point(0, 0)  # Sun at origin
 
-    velocity_earth = Velocity(0, 29780)  # Earth's orbital velocity around Sun ~29.78 km/s
+    velocity_earth = Velocity(29780, 0)  # Earth's orbital velocity around Sun ~29.78 km/s
     # velocity_moon = Velocity(0, 1022)  # Moon's orbital velocity around Earth ~1.022 km/s
     velocity_sun = Velocity(0, 0)  # Assuming the Sun is stationary in this frame
 
@@ -121,10 +121,10 @@ if __name__ == "__main__":
     body_sun = CelestialBody("Sun", mass_sun, 696340, starting_point_sun, velocity_sun, zero_acc)
 
     end_time = 31536000  # Simulate for one year (in seconds)
-    time_step = 3600 * 24 * 7 # Time step of one hour (in seconds)
+    time_step = 3600 * 24 * 7 # Time step of one week (in seconds)
 
     result = main([body_earth, body_sun], end_time, time_step)
-    # result.to_csv("result.csv", index=False)
+    result.to_csv("result.csv", index=False)
 
     # Get unique bodies
     bodies = result['body'].unique()
