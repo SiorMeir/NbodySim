@@ -33,17 +33,17 @@ class AbstractVector():
         x_diff = other.x - self.x
         y_diff = other.y - self.y
 
-        return AbstractVector(x_diff,y_diff)
+        return self.__class__(x_diff,y_diff)
         
     def __add__(self, other):
         if not isinstance(other, AbstractVector):
             raise TypeError("Unsupported operand type for +: AbstractVector and {}".format(type(other)))
-        return AbstractVector(self.x + other.x, self.y + other.y)
+        return self.__class__(self.x + other.x, self.y + other.y)
     
     def __mul__(self, other):
         if not isinstance(other, (float,int)):
             raise TypeError("Multiplication factor must be a scalar")
-        return AbstractVector.from_polar(self.size * other,self.azimuth)
+        return self.__class__.from_polar(self.size * other,self.azimuth)
     
     def __eq__(self, other):
         if not isinstance(other, AbstractVector):
