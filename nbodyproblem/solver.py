@@ -54,7 +54,7 @@ def update_body_state(body: CelestialBody, force: Force, timestep=0.1) -> Celest
     acceleration = Acceleration.from_polar(force.size / body.mass, force.azimuth)
     body.A = acceleration
     body.V += body.A * timestep
-    body.X = body.X + body.V * timestep + body.A * 0.5 * timestep**2
+    body.X = body.X + body.V * timestep
     return body
 
 
@@ -88,7 +88,6 @@ def main(bodies: list[CelestialBody], endtime: int, timestep: int) -> pd.DataFra
             dataseries = add_to_timeseries(dataseries, temp_body, elapsed_time)
         elapsed_time += timestep
     return dataseries
-    return dataseries
 
 def update_plot(frame, df):
     plt.cla()  # Clear the current axes
@@ -101,55 +100,41 @@ def update_plot(frame, df):
     plt.legend(loc='upper right')  # Add legend to differentiate bodies
 
 
+
 if __name__ == "__main__":
-    starting_point_earth = Point(1.496e11,0)  # Earth on orbit around the sun
+    starting_point_earth = Point(1.496e11, 0)  # Earth on orbit around the sun
     starting_point_sun = Point(0, 0)  # Sun at origin
 
     velocity_earth = Velocity(0, 29780)  # Earth's orbital velocity around Sun ~29.78 km/s
-    velocity_earth = Velocity(29780, 0)  # Earth's orbital velocity around Sun ~29.78 km/s
-    # velocity_moon = Velocity(0, 1022)  # Moon's orbital velocity around Earth ~1.022 km/s
     velocity_sun = Velocity(0, 0)  # Assuming the Sun is stationary in this frame
 
     mass_earth = 5.972e24  # Mass of Earth in kg
-    # mass_moon = 7.342e22  # Mass of Moon in kg
     mass_sun = 1.989e30  # Mass of Sun in kg
 
     zero_acc = Acceleration(0, 0)
 
     body_earth = CelestialBody("Earth", mass_earth, 6371, starting_point_earth, velocity_earth, zero_acc)
-    # body_moon = CelestialBody("Moon", mass_moon, 1737, starting_point_moon, velocity_moon, zero_acc)
     body_sun = CelestialBody("Sun", mass_sun, 696340, starting_point_sun, velocity_sun, zero_acc)
 
     end_time = 3.156e+7  # Simulate for one year (in seconds)
-    time_step = 3600 * 24 * 7 # Time step of one hour (in seconds)
-    end_time = 31536000  # Simulate for one year (in seconds)
-    time_step = 3600 * 24 * 7 # Time step of one week (in seconds)
+    time_step = 3600 * 24 * 7  # Time step of one week (in seconds)
 
     result = main([body_earth, body_sun], end_time, time_step)
-    result.to_csv("result.csv", index=False)
 
-    # Get unique bodies
-    bodies = result['body'].unique()
     # Initialize the figure and axis
     fig, ax = plt.subplots()
+    bodies = result['body'].unique()
+    lines = {body: ax.plot([], [], 'o', label=body)[0] for body in bodies}
 
-    # Initialize data storage
-    lines = {}
-    for body in bodies:
-        line, = ax.plot([], [], 'o', label=body)
-        lines[body] = line
-
-    ax.set_xlim(min(result['x']), max(result['x']))
-    ax.set_ylim(min(result['y']), max(result['y']))
+    ax.set_xlim(result['x'].min(), result['x'].max())
+    ax.set_ylim(result['y'].min(), result['y'].max())
     ax.legend()
 
-    # Initialization function
     def init():
         for line in lines.values():
             line.set_data([], [])
         return lines.values()
 
-    # Update function
     def update(i):
         time_point = result['time'].unique()[i]
         for body in bodies:
@@ -157,44 +142,6 @@ if __name__ == "__main__":
             lines[body].set_data(body_data['x'], body_data['y'])
         return lines.values()
 
-    # Create the animation
-    frames = result['time'].unique()
-    ani = animation.FuncAnimation(fig, update, frames=len(frames), init_func=init, blit=True)
-
-    plt.show()
-    result = main([body_earth, body_sun], end_time, time_step)
-    result.to_csv("result.csv", index=False)
-
-    # Get unique bodies
-    bodies = result['body'].unique()
-    # Initialize the figure and axis
-    fig, ax = plt.subplots()
-
-    # Initialize data storage
-    lines = {}
-    for body in bodies:
-        line, = ax.plot([], [], 'o', label=body)
-        lines[body] = line
-
-    ax.set_xlim(min(result['x']), max(result['x']))
-    ax.set_ylim(min(result['y']), max(result['y']))
-    ax.legend()
-
-    # Initialization function
-    def init():
-        for line in lines.values():
-            line.set_data([], [])
-        return lines.values()
-
-    # Update function
-    def update(i):
-        time_point = result['time'].unique()[i]
-        for body in bodies:
-            body_data = result[(result['body'] == body) & (result['time'] == time_point)]
-            lines[body].set_data(body_data['x'], body_data['y'])
-        return lines.values()
-
-    # Create the animation
     frames = result['time'].unique()
     ani = FuncAnimation(fig, update, frames=len(frames), init_func=init, blit=True)
 
