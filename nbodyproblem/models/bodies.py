@@ -3,7 +3,7 @@ import numpy as np
 
 
 @dataclass
-class AbstractVector:
+class AbstractVector():
     x: float
     y: float
 
