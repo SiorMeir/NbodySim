@@ -1,5 +1,4 @@
 from matplotlib.animation import FuncAnimation
-import numpy as np
 import pandas as pd
 from scipy.constants import gravitational_constant as G
 import matplotlib.pyplot as plt
