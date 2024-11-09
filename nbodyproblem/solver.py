@@ -61,19 +61,21 @@ def add_to_timeseries(
     timeseries: pd.DataFrame, body: CelestialBody, time: float
 ) -> pd.DataFrame:
     new_row = pd.DataFrame(
-        data=[[
-            time,
-            body.name,
-            body.X.x,
-            body.X.y,
-            body.V.x,
-            body.V.y,
-            body.A.x,
-            body.A.y,
-        ]],
+        data=[
+            [
+                time,
+                body.name,
+                body.X.x,
+                body.X.y,
+                body.V.x,
+                body.V.y,
+                body.A.x,
+                body.A.y,
+            ]
+        ],
         columns=columns,
     )
-    timeseries = pd.concat(objs=[timeseries,new_row],ignore_index=True)
+    timeseries = pd.concat(objs=[timeseries, new_row], ignore_index=True)
     return timeseries
 
 
@@ -88,23 +90,27 @@ def main(bodies: list[CelestialBody], endtime: int, timestep: int) -> pd.DataFra
         elapsed_time += timestep
     return dataseries
 
+
 def update_plot(frame, df):
     plt.cla()  # Clear the current axes
-    data = df[df['time'] == frame]  # Filter data for the current time
+    data = df[df["time"] == frame]  # Filter data for the current time
     for _, row in data.iterrows():
-        plt.scatter(row['x'], row['y'], label=row['name'])  # Plot x and y coordinates for the body
-    plt.xlim(df['x'].min(), df['x'].max())  # Set x-axis limits
-    plt.ylim(df['y'].min(), df['y'].max())  # Set y-axis limits
-    plt.title(f'Time: {frame}')  # Set title with current time
-    plt.legend(loc='upper right')  # Add legend to differentiate bodies
-
+        plt.scatter(
+            row["x"], row["y"], label=row["name"]
+        )  # Plot x and y coordinates for the body
+    plt.xlim(df["x"].min(), df["x"].max())  # Set x-axis limits
+    plt.ylim(df["y"].min(), df["y"].max())  # Set y-axis limits
+    plt.title(f"Time: {frame}")  # Set title with current time
+    plt.legend(loc="upper right")  # Add legend to differentiate bodies
 
 
 if __name__ == "__main__":
     starting_point_earth = Point(1.496e11, 0)  # Earth on orbit around the sun
     starting_point_sun = Point(0, 0)  # Sun at origin
 
-    velocity_earth = Velocity(0, 29780)  # Earth's orbital velocity around Sun ~29.78 km/s
+    velocity_earth = Velocity(
+        0, 29780
+    )  # Earth's orbital velocity around Sun ~29.78 km/s
     velocity_sun = Velocity(0, 0)  # Assuming the Sun is stationary in this frame
 
     mass_earth = 5.972e24  # Mass of Earth in kg
@@ -112,21 +118,25 @@ if __name__ == "__main__":
 
     zero_acc = Acceleration(0, 0)
 
-    body_earth = CelestialBody("Earth", mass_earth, 6371, starting_point_earth, velocity_earth, zero_acc)
-    body_sun = CelestialBody("Sun", mass_sun, 696340, starting_point_sun, velocity_sun, zero_acc)
+    body_earth = CelestialBody(
+        "Earth", mass_earth, 6371, starting_point_earth, velocity_earth, zero_acc
+    )
+    body_sun = CelestialBody(
+        "Sun", mass_sun, 696340, starting_point_sun, velocity_sun, zero_acc
+    )
 
-    end_time = 3.156e+7  # Simulate for one year (in seconds)
+    end_time = 3.156e7  # Simulate for one year (in seconds)
     time_step = 3600 * 24 * 7  # Time step of one week (in seconds)
 
     result = main([body_earth, body_sun], end_time, time_step)
 
     # Initialize the figure and axis
     fig, ax = plt.subplots()
-    bodies = result['body'].unique()
-    lines = {body: ax.plot([], [], 'o', label=body)[0] for body in bodies}
+    bodies = result["body"].unique()
+    lines = {body: ax.plot([], [], "o", label=body)[0] for body in bodies}
 
-    ax.set_xlim(result['x'].min(), result['x'].max())
-    ax.set_ylim(result['y'].min(), result['y'].max())
+    ax.set_xlim(result["x"].min(), result["x"].max())
+    ax.set_ylim(result["y"].min(), result["y"].max())
     ax.legend()
 
     def init():
@@ -135,13 +145,15 @@ if __name__ == "__main__":
         return lines.values()
 
     def update(i):
-        time_point = result['time'].unique()[i]
+        time_point = result["time"].unique()[i]
         for body in bodies:
-            body_data = result[(result['body'] == body) & (result['time'] == time_point)]
-            lines[body].set_data(body_data['x'], body_data['y'])
+            body_data = result[
+                (result["body"] == body) & (result["time"] == time_point)
+            ]
+            lines[body].set_data(body_data["x"], body_data["y"])
         return lines.values()
 
-    frames = result['time'].unique()
+    frames = result["time"].unique()
     ani = FuncAnimation(fig, update, frames=len(frames), init_func=init, blit=True)
 
     plt.show()
