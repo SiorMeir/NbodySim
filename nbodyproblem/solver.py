@@ -1,3 +1,4 @@
+from typing import List
 from matplotlib.animation import FuncAnimation
 import pandas as pd
 from scipy.constants import gravitational_constant as G
@@ -20,8 +21,7 @@ def calc_forces(bodies: list[CelestialBody]) -> dict:
     forces_in_system = {}
 
     for i, body_i in enumerate(bodies):
-        force_on_body_i = Force(0, 0)  # Initialize force vector for body i
-
+        force_on_body_i = Force(x=0, y=0)  # Initialize force vector for body i
         for j, body_j in enumerate(bodies):
             if i != j:
                 # Calculate distance between bodies i and j
@@ -79,7 +79,7 @@ def add_to_timeseries(
     return timeseries
 
 
-def main(bodies: list[CelestialBody], endtime: int, timestep: int) -> pd.DataFrame:
+def main(bodies: List[CelestialBody], endtime: int, timestep: int) -> pd.DataFrame:
     dataseries = sim_dataseries.copy()
     elapsed_time = 0.0
     while elapsed_time < endtime:

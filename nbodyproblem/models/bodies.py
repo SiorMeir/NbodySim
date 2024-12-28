@@ -1,9 +1,9 @@
 from dataclasses import dataclass
+from pydantic import BaseModel
 import numpy as np
 
 
-@dataclass
-class AbstractVector():
+class AbstractVector(BaseModel):
     x: float
     y: float
 
@@ -26,7 +26,7 @@ class AbstractVector():
     def from_polar(cls, size, azimuth):
         x = size * np.cos(azimuth)
         y = size * np.sin(azimuth)
-        return cls(x, y)
+        return cls(x=x, y=y)
 
     def get_difference(self, other):
         if not isinstance(other, AbstractVector):
@@ -34,7 +34,7 @@ class AbstractVector():
         x_diff = other.x - self.x
         y_diff = other.y - self.y
 
-        return self.__class__(x_diff, y_diff)
+        return self.__class__(x=x_diff, y=y_diff)
 
     def __add__(self, other):
         if not isinstance(other, AbstractVector):
@@ -43,7 +43,7 @@ class AbstractVector():
                     type(other)
                 )
             )
-        return self.__class__(self.x + other.x, self.y + other.y)
+        return self.__class__(x=self.x + other.x, y=self.y + other.y)
 
     def __mul__(self, other):
         if not isinstance(other, (float, int)):
@@ -72,8 +72,7 @@ class Force(AbstractVector):
     pass
 
 
-@dataclass
-class CelestialBody:
+class CelestialBody(BaseModel):
     name: str
     mass: float
     radius: float
