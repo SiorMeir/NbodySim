@@ -3,3 +3,6 @@
 *.pyc
 *.csv
 *.cfg
+__pycache__/
+.ruff_cache/
+.pytest_cache/
